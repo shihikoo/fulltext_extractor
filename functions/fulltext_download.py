@@ -94,7 +94,7 @@ def download_file_from_httplink(link, subfolder, filename, timeout = (10,60), ou
     
     return output
 
-def download_file_from_crossrefjson_links(myInput, subfolder, click_through_api_key, elsevier_api_key, timeout = (10,60), outputFolder = "output/", format_type = None, onlyPdf = False, sleepTime= 1):
+def download_file_from_crossrefjson_links(myInput, subfolder, timeout = (10,60), outputFolder = "output/", format_type = None, onlyPdf = False, sleepTime= 1):
     
     links = myInput['CrossrefLinks']
     filename = myInput['Id']

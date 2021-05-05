@@ -54,6 +54,17 @@ def wiley_adjustment(link_list):
     # print(link_list)
     return link_list
 
+def sciencedirect_adjustment(link_list):  
+    wiley_link_list = [link for link in link_list if ('https://api.elsevier.com/content/article/PII:' in link['URL'])]
+    # print(link_list)
+    if wiley_link_list:
+        new_wiley_link = copy.copy(wiley_link_list[0])
+        new_wiley_link['URL'] = new_wiley_link['URL'].replace("api.elsevier.com/content/article/PII:","www.sciencedirect.com/science/article/pii/")
+        new_wiley_link['URL'] = new_wiley_link['URL'].replace("?httpAccept=text/xml","/pdfft?isDTMRedir=true&download=true")
+        new_wiley_link['URL'] = new_wiley_link['URL'].replace("?httpAccept=text/plain","/pdfft?isDTMRedir=true&download=true")
+        link_list.append(new_wiley_link)
+    # print(link_list)
+    return link_list
 
 def parse_crossref_api_metadata_file(jsoninput, only_textmining = False, only_pdf = False):
     link_list = []
@@ -71,15 +82,17 @@ def parse_crossref_api_metadata_file(jsoninput, only_textmining = False, only_pd
     link_list = [link for link in link_list if ('https://syndication.highwire.org' not in link['URL'])]
     
     link_list = wiley_adjustment(link_list)
-    
+    link_list = sciencedirect_adjustment(link_list)
+
+    sciencedirect_adjustment
     if only_pdf and len(link_list) > 0:
         link_list = [link for link in link_list if ((link['content-type'] == 'application/pdf') or (link['content-type'] == 'unspecified'))]
     if only_textmining and len(link_list) > 0:
         link_list = [link for link in link_list if link['intended-application'] == 'text-mining']
     else:
-        pdflinklist = [link for link in link_list if link['intended-application'] == 'text-mining']
-        if len(pdflinklist) > 0:
-            link_list = pdflinklist
+        textmining_linklist = [link for link in link_list if link['intended-application'] == 'text-mining']
+        if len(textmining_linklist) > 0:
+            link_list = textmining_linklist
             
     if len(link_list) == 0:
         return None

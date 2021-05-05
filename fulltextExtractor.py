@@ -110,7 +110,7 @@ def process(inputFilename
     
     # In[3]: convert doi to pmcids if possible and find pmc ftp links
     index = (myDF['pmcid'].isna()) & (myDF['DOI'].notna())
-    if sum(index) > 0:
+    if len(index) > 0:
         myDF.at[index,'pmcid'] = myDF.loc[index,'DOI'].replace(np.nan,"").apply(pmc_helpers.doi_to_pmcid)
       #  myDF.at[index,'pmclink'] = myDF.loc[index,'pmcid'].apply(pmc_helpers.construct_pmc_fulltext_pdf_link)
         myDF.at[index,'pmclink'] = myDF.loc[index,'pmcid'].apply(pmc_helpers.find_pmc_fulltext_pdf_ftplink)
@@ -121,13 +121,13 @@ def process(inputFilename
     # Download full text from pmc ftp pdf links
     index = myDF[(myDF['Filepath'].isna()) & (myDF['pmclink'].notna()) & (myDF['pmclink'].apply(find_extention) != '.gz')].index.tolist()
     
-    if sum(index) > 0:
+    if len(index) > 0:
         myDF.at[index,['Filepath','FileSource','pmc_status_code','pmc_error']] = myDF.loc[index,['pmclink', 'Id']].apply(fulltext_download.download_file_from_pmc_nonzip_links, subfolder = '',  outputFolder = fulltextOutputFolder, onlyPdf = onlyPdf, axis = 1)
         myDF.to_pickle(pickleDFFilename)
 
     # Download full text from ftp pmc zip links        
     index = myDF[(myDF['Filepath'].isna()) & (myDF['pmclink'].notna()) & (myDF['pmclink'].apply(find_extention) == '.gz')].index.tolist() 
-    if sum(index) > 0:
+    if len(index) > 0:
         global pmc 
         pmc = ftp_download.connect()
         
@@ -136,14 +136,22 @@ def process(inputFilename
         
         ftp_download.disconnect()
         myDF.to_pickle(pickleDFFilename)
+    
+    # For those with pmcid but can't download pdf, construct fulltext http pdf link
+    index = myDF[(myDF['Filepath'].isna()) & (myDF['pmcid'].notna())].index.tolist()
+    if len(index) > 0:
+        myDF.at[index,'pmclink'] = myDF.loc[index,'pmcid'].apply(pmc_helpers.construct_pmc_fulltext_pdf_link)
+        
+        myDF.at[index,['Filepath','FileSource','pmc_status_code','pmc_error']] = myDF.loc[index,['pmclink', 'Id']].apply(fulltext_download.download_file_from_pmc_nonzip_links, subfolder = '',  outputFolder = fulltextOutputFolder, onlyPdf = onlyPdf, axis = 1)
+        myDF.to_pickle(pickleDFFilename)
 
-    myDF.to_pickle(pickleDFFilename)
+    # myDF.to_pickle(pickleDFFilename)
     
     print(f'pdf downloaded = {sum(myDF["FileSource"] == "pmc")} pmc links')
     
     # In[4]: retrive crossref full text links
     index = (myDF['Filepath'].isna()) & (myDF['CrossrefLinks'].isna()) & (myDF['DOI'].notna())
-    if sum(index) > 0:
+    if len(index) > 0:
         myDF.at[index, 'CrossrefLinks'] = myDF.loc[index, 'DOI'].apply(crossref_helpers.retrive_crossref_fulltextlink_json, only_pdf = onlyPdf)
     
     myDF.to_pickle(pickleDFFilename)
@@ -151,7 +159,7 @@ def process(inputFilename
     print(f'There are {sum(myDF["CrossrefLinks"].notna())} studies with crossref link.')
      
     index = myDF[(myDF['Filepath'].isna()) & (myDF['CrossrefLinks'].notna())].index.tolist()
-    if sum(index) > 0: 
+    if len(index) > 0: 
         myDF.at[index,['Filepath','FileSource','crossref_status_code','crossref_error']] = myDF.loc[index,['CrossrefLinks', 'Id']].apply(fulltext_download.download_file_from_crossrefjson_links, subfolder = '',  outputFolder = fulltextOutputFolder, onlyPdf = onlyPdf, axis = 1)
         
     myDF.to_pickle(pickleDFFilename)
@@ -163,7 +171,7 @@ def process(inputFilename
         myDF['DoiLinks'] = None
     
     index = (myDF['Filepath'].isna()) & (myDF['DOI'].notna())
-    if sum(index) > 0:
+    if len(index) > 0:
         myDF.at[index,'DoiLinks'] = myDF.loc[index,'DOI'].apply(doi_helpers.extract_fulltextlink_with_doi)
     
     myDF.to_pickle(pickleDFFilename)
@@ -172,7 +180,7 @@ def process(inputFilename
     
     # download full text from doi full text links
     index = (myDF['Filepath'].isna()) & (myDF['DoiLinks'].notna())
-    if sum(index) > 0:
+    if len(index) > 0:
         myDF.at[index,['Filepath','FileSource','doi_status_code','doi_error']] = myDF.loc[index,['DoiLinks', 'Id']].apply(fulltext_download.download_file_from_doi_links, subfolder = '',  outputFolder = fulltextOutputFolder, onlyPdf = onlyPdf, axis = 1)
        
     myDF.to_pickle(pickleDFFilename)

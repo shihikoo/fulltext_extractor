@@ -145,11 +145,11 @@ def extract_gzip(infile, outfile, ignore = True, sleepTime = 0.3, onlyPdf = True
         has_pdf = False
         for m in tar:
             if os.path.splitext(m.name.lower())[1] == '.pdf':
+                outfile = outfile + ".pdf"
                 has_pdf = True
         if has_pdf:
             tar.extractall(path = directory, members = files_to_extract(tar, outfilename))
             extracted = True
-        
         break
       except Exception as e:
         print('{0}, attempt {1}/{2}'.format(e, attempt, n_attempt))
@@ -164,7 +164,7 @@ def extract_gzip(infile, outfile, ignore = True, sleepTime = 0.3, onlyPdf = True
     else:
       print('{0}, ignoring...'.format(e))
       rest(sleepTime)
-      return
+      return(output)
   finally:
     response.close()
     if tar:
@@ -197,21 +197,21 @@ def download_files():
 
   disconnect()
 
-def download_pdf_zip(input_filename, output_filename):
-  '''
-  Connect to the PubMed Central Open Access Subset FTP service and attempt to
-  download and extract each archive listed in file_list.txt.gz
-  '''
-  global pmc
+# def download_pdf_zip(input_filename, output_filename):
+  # '''
+  # Connect to the PubMed Central Open Access Subset FTP service and attempt to
+  # download and extract each archive listed in file_list.txt.gz
+  # '''
+  # global pmc
   
-  pmc = connect()
+  # pmc = connect()
 
-  input_filename = "/pub/pmc/oa_package/00/00/PMC1790863.tar.gz"
-  output_dir = "../test/" 
+  # input_filename = "/pub/pmc/oa_package/00/00/PMC1790863.tar.gz"
+  # output_dir = "../test/" 
   
-  output_filename = output_dir + "text.pdf"
-  ignore = True
+  # output_filename = output_dir + "text.pdf"
+  # ignore = True
     
-  extract_gzip(pmc, input_filename, output_filename, ignore)
-
-  disconnect()
+  # extract_gzip(pmc, input_filename, output_filename, ignore)
+# 
+  # disconnect()
